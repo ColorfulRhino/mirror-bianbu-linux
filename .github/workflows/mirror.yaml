@@ -1,0 +1,28 @@
+name: Mirror Repository
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # This runs the action every day at 2:00AM
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+
+      - name: Set up Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Clone external repository
+        run: git clone --mirror https://gitee.com/bianbu-linux/linux-6.1.git external_repo
+
+      - name: Push to GitHub
+        run: |
+          cd external_repo
+          git remote set-url --push origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
+          git push --mirror
